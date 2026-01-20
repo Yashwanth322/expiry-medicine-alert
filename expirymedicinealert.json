@@ -1,0 +1,194 @@
+{
+  "name": "expirymedicinealert",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        -96
+      ],
+      "id": "b3998289-61e9-4ef0-9d4d-2edfb2974985",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ofbVhSYoFqDSmKc6TmJaBuO2d-TN7ODhCiGqhEn99g8",
+          "mode": "list",
+          "cachedResultName": "expirymedicinealert",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ofbVhSYoFqDSmKc6TmJaBuO2d-TN7ODhCiGqhEn99g8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ofbVhSYoFqDSmKc6TmJaBuO2d-TN7ODhCiGqhEn99g8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        -96
+      ],
+      "id": "a5cb22a8-2790-4c37-9e5f-8d2b990fc77d",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3acKAb2J7M3kbHp3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date();\ntoday.setHours(0,0,0,0);\n\nconst threeMonthsLater = new Date(today);\nthreeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);\n\nreturn items.filter(item => {\n  const expiry = new Date(item.json[\"EXPIRY DATE\"]);\n  expiry.setHours(0,0,0,0);\n\n  return expiry >= today && expiry <= threeMonthsLater;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        -96
+      ],
+      "id": "d4112b90-7214-48fa-9567-f989a186cc01",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "68541bb9-4ce9-4318-ad03-9a1d1e6370d4",
+              "leftValue": "={{$items().length}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "7154731f-9297-4be3-bf05-3670d065dd51",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "kalyanimedical.srinu@gmail.com",
+        "subject": "⚠️ Pharmacy Alert: Medicines Expiring in Next 3 Months",
+        "message": "=<h3>⚠️ Medicine Expiry Alert</h3>\n\n<p><b>Medicine Name:</b> {{ $json[\"MEDICINE NAME\"] }}</p>\n<p><b>Expiry Date:</b> {{ $json[\"EXPIRY DATE\"] }}</p>\n<p><b>Supplier Town:</b> {{ $json[\"SUPPLIER TOWN\"] }}</p>\n\n<p>Please take necessary action.</p>\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        -96
+      ],
+      "id": "ba2c4abd-479b-4bef-92ea-4c876779d267",
+      "name": "Send a message",
+      "webhookId": "f8100f8c-0424-42f8-9faf-5878f69fbae1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0EswtsikTZx0skMr",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c4bd296d-c325-43ae-bafa-dcd0b63182e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b8402b6d034efbba3e44563989a20f323b25f0dd89c3f7c81d3bf0eb9cb1230"
+  },
+  "id": "rV812-9zsBwCayt_6PpaK",
+  "tags": [
+    {
+      "name": "kalyanimedical",
+      "id": "cyGL9g7i6gpjJXtu",
+      "updatedAt": "2026-01-20T17:00:31.486Z",
+      "createdAt": "2026-01-20T17:00:31.486Z"
+    }
+  ]
+}
